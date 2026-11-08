@@ -1,0 +1,10 @@
+import {mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {resolve} from 'node:path';
+const root=resolve(import.meta.dirname,'..'),out=resolve(root,'artifacts'),name='ai-ssukssuk-0.1.0-debug.apk';
+await mkdir(out,{recursive:true});
+await copyFile(resolve(root,'android/app/build/outputs/apk/debug/app-debug.apk'),resolve(out,name));
+const digest=createHash('sha256').update(await readFile(resolve(out,name))).digest('hex');
+await writeFile(resolve(out,name+'.sha256'),`${digest}  ${name}\n`);
+await writeFile(resolve(out,'index.html'),`<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>아이 쑥쑥 성장 리포트 다운로드</title><style>body{margin:0;background:#f7f8fa;color:#191f28;font-family:system-ui,sans-serif}main{max-width:480px;margin:8vh auto;padding:32px}h1{font-size:30px;line-height:1.5}p,li{color:#6b7684;line-height:1.9}a{display:block;padding:18px;background:#3182f6;color:white;text-align:center;border-radius:14px;text-decoration:none;font-weight:700;margin:28px 0}small{overflow-wrap:anywhere;color:#8b95a1}.icon{font-size:50px;color:#3182f6}</style><main><div class="icon">↗</div><h1>아이 쑥쑥<br>성장 리포트</h1><p>우리 아이의 작은 순간을<br>쉽고 간편하게 기록해요.</p><a href="${name}" download>Android APK 다운로드 ↓</a><p>0.1.0 · Android 8.0 이상 · 개인 테스트 버전</p><ol><li>Android 휴대폰에서 APK를 내려받아요.</li><li>다운로드한 파일을 열어요.</li><li>휴대폰 안내에 따라 해당 출처의 앱 설치를 허용해요.</li></ol><p>기록은 각 기기에만 저장돼요. 부모 공동 기록과 PC 웹 자동 동기화는 아직 제공하지 않아요. 앱을 삭제하기 전에 설정에서 기록을 백업해주세요.</p><small>SHA-256: ${digest}</small></main></html>`);
+console.log(`APK 패키징 완료: ${resolve(out,name)}\nSHA-256: ${digest}`);
