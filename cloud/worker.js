@@ -1,4 +1,5 @@
 import {validate} from '../app/model.js';
+import {validatePreparation} from '../app/preparation-model.js';
 
 const SESSION_MS=12*60*60*1000;
 const encoder=new TextEncoder();
@@ -21,7 +22,7 @@ async function newDevice(db,familyId,label){if(!validText(label,30))fail(400,'�
 async function authenticated(db,request){const auth=request.headers.get('Authorization')??'';if(!/^Bearer [a-f0-9]{64}$/.test(auth))fail(401,'PIN으로 다시 입장해주세요.');const row=await first(db,'SELECT d.id AS device_id,d.family_id,d.label,f.child_id,f.record_epoch FROM sessions s JOIN devices d ON d.id=s.device_id JOIN families f ON f.id=d.family_id WHERE s.key_hash=? AND s.expires_at>?',await hash(auth.slice(7)),Date.now());if(!row){const session=await first(db,'SELECT expires_at FROM sessions WHERE key_hash=?',await hash(auth.slice(7)));if(!session)fail(410,'이 기기의 가족 연결이 삭제되었어요.','CONNECTION_REMOVED');fail(401,'PIN으로 다시 입장해주세요.');}return row;}
 function entryView(row){return {id:row.entry_id??row.id,entity:row.entity,revision:row.revision,deleted:!!row.deleted,record:row.deleted?null:JSON.parse(row.payload)};}
 async function applyOperation(db,auth,op){
- if(!op||!validText(op.id,80)||!validText(op.key,80)||!Number.isSafeInteger(op.baseRevision)||op.baseRevision<0||!['child','record'].includes(op.entity)||!['put','delete'].includes(op.action))fail(400,'동기화 요청을 확인해주세요.');
+ if(!op||!validText(op.id,80)||!validText(op.key,80)||!Number.isSafeInteger(op.baseRevision)||op.baseRevision<0||!['child','record','preparation'].includes(op.entity)||!['put','delete'].includes(op.action))fail(400,'동기화 요청을 확인해주세요.');
  const fingerprint=await hash(JSON.stringify(op));
  const prior=await first(db,'SELECT fingerprint,entry_id,revision FROM mutations WHERE family_id=? AND id=?',auth.family_id,op.id);
  if(prior){if(prior.fingerprint!==fingerprint)fail(400,'중복 요청 식별자가 일치하지 않아요.');return {id:op.id,key:prior.entry_id,revision:prior.revision};}
@@ -29,6 +30,8 @@ async function applyOperation(db,auth,op){
  let record=op.record,deleted=op.action==='delete';
  if(op.entity==='child'){
   if(deleted||!childValid(record)||record.id!==auth.child_id||op.key!==auth.child_id)fail(400,'아이 프로필을 확인해주세요.');
+ }else if(op.entity==='preparation'){
+  if(!deleted){try{validatePreparation(record,auth.child_id);}catch{fail(400,'준비물과 일정의 체크 상태를 확인해주세요.');}if(record.id!==op.key)fail(400,'준비 기록 식별자를 확인해주세요.');record={...record,updated_by:auth.label,updated_at:Date.now()};}
  }else if(!deleted){
   try{validate(record);}catch{fail(400,'저장할 기록의 값과 시각을 확인해주세요.');}
   if(record.id!==op.key||record.child_id!==auth.child_id||typeof record.memo!=='string'&&record.memo!==null||record.memo?.length>1000)fail(400,'아이와 기록 정보를 확인해주세요.');
@@ -51,7 +54,7 @@ async function applyOperation(db,auth,op){
 }
 export async function api(request,env){
  const url=new URL(request.url),db=env.DB,path=url.pathname,now=Date.now();
- if(path==='/api/health'&&request.method==='GET')return {ok:true,version:'0.4.0'};
+ if(path==='/api/health'&&request.method==='GET')return {ok:true,version:'0.5.0'};
  if(!db)fail(503,'공동 기록 저장소를 준비 중이에요.');
  if(path==='/api/families'&&request.method==='POST'){
   const data=await body(request);checkPin(data.pin);if(!childValid(data.child)||data.consent!==true||!validText(data.label,30))fail(400,'아이 정보와 저장 동의를 확인해주세요.');
@@ -113,7 +116,7 @@ export async function api(request,env){
   const guard='EXISTS(SELECT 1 FROM families WHERE id=? AND reset_id=?)';
   const result=await db.batch([
    statement(db,'UPDATE families SET record_epoch=record_epoch+1,reset_id=? WHERE '+unchanged,resetId,...params),
-   statement(db,'DELETE FROM mutations WHERE family_id=? AND entry_id<>? AND '+guard,auth.family_id,auth.child_id,auth.family_id,resetId),
+   statement(db,"DELETE FROM mutations WHERE family_id=? AND entry_id IN(SELECT id FROM entries WHERE family_id=? AND entity='record') AND "+guard,auth.family_id,auth.family_id,auth.family_id,resetId),
    statement(db,"DELETE FROM changes WHERE family_id=? AND entity IN ('record','reset') AND "+guard,auth.family_id,auth.family_id,resetId),
    statement(db,"DELETE FROM entries WHERE family_id=? AND entity='record' AND "+guard,auth.family_id,auth.family_id,resetId),
    statement(db,"INSERT INTO changes(family_id,entry_id,revision,payload,entity,deleted,mutation_id) SELECT ?,?,?,?,'reset',0,? WHERE "+guard,auth.family_id,'__reset__',nextEpoch,JSON.stringify({epoch:nextEpoch}),resetId,auth.family_id,resetId)
@@ -131,10 +134,11 @@ export async function api(request,env){
   const results=[];for(const op of data.operations)results.push(await applyOperation(db,auth,op));return {results};
  }
  if(path==='/api/pull'&&request.method==='GET'){
-  if(auth.record_epoch>0&&!['2','3'].includes(url.searchParams.get('protocol')))fail(426,'기록 초기화가 반영된 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
+  if(auth.record_epoch>0&&!['2','3','4'].includes(url.searchParams.get('protocol')))fail(426,'기록 초기화가 반영된 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
   const cursor=Number(url.searchParams.get('cursor')??0);if(!Number.isSafeInteger(cursor)||cursor<0)fail(400,'최신화 위치를 확인해주세요.');
   const {results}=await statement(db,'SELECT * FROM changes WHERE family_id=? AND seq>? ORDER BY seq LIMIT 100',auth.family_id,cursor).all();
-  if(url.searchParams.get('protocol')!=='3'&&results.some(r=>!r.deleted&&r.entity==='record'&&JSON.parse(r.payload).type==='food'))fail(426,'이유식 기록을 보려면 가족 모두 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
+  if(url.searchParams.get('protocol')!=='4'&&results.some(r=>r.entity==='preparation'))fail(426,'탄생 준비 가이드를 함께 쓰려면 가족 모두 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
+  if(!['3','4'].includes(url.searchParams.get('protocol'))&&results.some(r=>!r.deleted&&r.entity==='record'&&JSON.parse(r.payload).type==='food'))fail(426,'이유식 기록을 보려면 가족 모두 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
   return {recordEpoch:auth.record_epoch,changes:results.map(entryView),cursor:results.at(-1)?.seq??cursor,hasMore:results.length===100};
  }
  if(path==='/api/disconnect'&&request.method==='POST'){await run(db,'DELETE FROM devices WHERE id=?',auth.device_id);return {ok:true};}

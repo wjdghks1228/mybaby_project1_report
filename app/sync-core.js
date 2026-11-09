@@ -1,6 +1,6 @@
 export const emptySync=()=>({versions:{},pending:{},conflicts:{},cursor:0,recordEpoch:0,lastSyncedAt:null});
 const copy=value=>structuredClone(value);
-function entries(state){const values=new Map();if(state.child)values.set(state.child.id,{entity:'child',record:state.child});for(const r of state.records??[])values.set(r.id,{entity:'record',record:r});return values;}
+function entries(state){const values=new Map();if(state.child)values.set(state.child.id,{entity:'child',record:state.child});for(const r of Object.values(state.preparation??{}))values.set(r.id,{entity:'preparation',record:r});for(const r of state.records??[])values.set(r.id,{entity:'record',record:r});return values;}
 export function queueChanges(before,after,inFlight=new Set()){
  const next=copy(after),sync=next.sync??emptySync();next.sync=sync;
  const oldEntries=entries(before),newEntries=entries(after);
@@ -25,6 +25,7 @@ export function acceptResults(state,sent,results){
  return next;
 }
 function applyEntry(state,entry){
+ if(entry.entity==='preparation'){state.preparation??={};if(entry.deleted)delete state.preparation[entry.id];else state.preparation[entry.id]=copy(entry.record);return;}
  if(entry.entity==='child'){if(!entry.deleted)state.child=copy(entry.record);return;}
  state.records=state.records.filter(r=>r.id!==entry.id);if(!entry.deleted)state.records.push(copy(entry.record));
 }
@@ -32,9 +33,9 @@ export function applyReset(state,epoch){
  const next=copy(state),sync=next.sync??emptySync();next.sync=sync;
  if(epoch<=(sync.recordEpoch??0))return next;
  next.records=[];next.nursing=null;
- sync.versions=Object.fromEntries(Object.entries(sync.versions).filter(([key])=>key===next.child?.id));
- sync.pending=Object.fromEntries(Object.entries(sync.pending).filter(([,op])=>op.entity==='child'));
- sync.conflicts=Object.fromEntries(Object.entries(sync.conflicts).filter(([key])=>key===next.child?.id));
+ sync.versions=Object.fromEntries(Object.entries(sync.versions).filter(([key])=>key===next.child?.id||Object.hasOwn(next.preparation??{},key)));
+ sync.pending=Object.fromEntries(Object.entries(sync.pending).filter(([,op])=>op.entity==='child'||op.entity==='preparation'));
+ sync.conflicts=Object.fromEntries(Object.entries(sync.conflicts).filter(([key])=>key===next.child?.id||Object.hasOwn(next.preparation??{},key)));
  sync.recordEpoch=epoch;return next;
 }
 export function applyChanges(state,changes,cursor,recordEpoch=state.sync?.recordEpoch??0){
