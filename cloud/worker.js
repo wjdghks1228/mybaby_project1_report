@@ -54,7 +54,7 @@ async function applyOperation(db,auth,op){
 }
 export async function api(request,env){
  const url=new URL(request.url),db=env.DB,path=url.pathname,now=Date.now();
- if(path==='/api/health'&&request.method==='GET')return {ok:true,version:'0.5.0'};
+ if(path==='/api/health'&&request.method==='GET')return {ok:true,version:'0.6.0'};
  if(!db)fail(503,'공동 기록 저장소를 준비 중이에요.');
  if(path==='/api/families'&&request.method==='POST'){
   const data=await body(request);checkPin(data.pin);if(!childValid(data.child)||data.consent!==true||!validText(data.label,30))fail(400,'아이 정보와 저장 동의를 확인해주세요.');
@@ -134,11 +134,12 @@ export async function api(request,env){
   const results=[];for(const op of data.operations)results.push(await applyOperation(db,auth,op));return {results};
  }
  if(path==='/api/pull'&&request.method==='GET'){
-  if(auth.record_epoch>0&&!['2','3','4'].includes(url.searchParams.get('protocol')))fail(426,'기록 초기화가 반영된 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
+  if(auth.record_epoch>0&&!['2','3','4','5'].includes(url.searchParams.get('protocol')))fail(426,'기록 초기화가 반영된 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
   const cursor=Number(url.searchParams.get('cursor')??0);if(!Number.isSafeInteger(cursor)||cursor<0)fail(400,'최신화 위치를 확인해주세요.');
   const {results}=await statement(db,'SELECT * FROM changes WHERE family_id=? AND seq>? ORDER BY seq LIMIT 100',auth.family_id,cursor).all();
-  if(url.searchParams.get('protocol')!=='4'&&results.some(r=>r.entity==='preparation'))fail(426,'탄생 준비 가이드를 함께 쓰려면 가족 모두 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
-  if(!['3','4'].includes(url.searchParams.get('protocol'))&&results.some(r=>!r.deleted&&r.entity==='record'&&JSON.parse(r.payload).type==='food'))fail(426,'이유식 기록을 보려면 가족 모두 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
+  if(!['4','5'].includes(url.searchParams.get('protocol'))&&results.some(r=>r.entity==='preparation'))fail(426,'탄생 준비 가이드를 함께 쓰려면 가족 모두 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
+  if(!['3','4','5'].includes(url.searchParams.get('protocol'))&&results.some(r=>!r.deleted&&r.entity==='record'&&JSON.parse(r.payload).type==='food'))fail(426,'이유식 기록을 보려면 가족 모두 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
+  if(url.searchParams.get('protocol')!=='5'&&results.some(r=>!r.deleted&&r.entity==='record'&&['hospital','note'].includes(JSON.parse(r.payload).type)))fail(426,'병원·특이사항 기록을 함께 보려면 가족 모두 최신 앱으로 업데이트해주세요.','UPDATE_REQUIRED');
   return {recordEpoch:auth.record_epoch,changes:results.map(entryView),cursor:results.at(-1)?.seq??cursor,hasMore:results.length===100};
  }
  if(path==='/api/disconnect'&&request.method==='POST'){await run(db,'DELETE FROM devices WHERE id=?',auth.device_id);return {ok:true};}

@@ -36,7 +36,7 @@ export function createCloud({read,commit,attach,changed,notify,onReset=()=>{},re
  async function unlock(pin){if(!connection)throw Error('가족 연결이 필요해요.');const result=await request('/api/unlock',{method:'POST',authenticated:false,data:{deviceKey:connection.deviceKey,pin}});access=result.accessToken;expiresAt=result.expiresAt;lastError=null;await sync(true);}
  async function pull(){
   let more=true,pages=0;
-  while(more&&pages<100){const before=read(),epoch=before.sync?.recordEpoch??0;const result=await request('/api/pull?protocol=4&cursor='+(before.sync?.cursor??0));const next=applyChanges(read(),result.changes,result.cursor,result.recordEpoch??0);if(!commit(next))throw Error('내려받은 기록을 이 기기에 저장하지 못했어요.');if((next.sync?.recordEpoch??0)>epoch)onReset(next.sync.recordEpoch);more=result.hasMore;pages++;}
+  while(more&&pages<100){const before=read(),epoch=before.sync?.recordEpoch??0;const result=await request('/api/pull?protocol=5&cursor='+(before.sync?.cursor??0));const next=applyChanges(read(),result.changes,result.cursor,result.recordEpoch??0);if(!commit(next))throw Error('내려받은 기록을 이 기기에 저장하지 못했어요.');if((next.sync?.recordEpoch??0)>epoch)onReset(next.sync.recordEpoch);more=result.hasMore;pages++;}
   return !more;
  }
  async function sync(rethrow=false){

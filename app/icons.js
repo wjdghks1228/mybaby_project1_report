@@ -14,6 +14,8 @@ const paths = {
   guide: '<path d="M12 5C8 2 4 3 2 4v15c3-1 6-1 10 2 4-3 7-3 10-2V4c-3-1-6-2-10 1Zm0 0v16"/>',
   check: '<path d="m5 12 4 4L19 6"/>',
   arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
+  hospital: '<path d="M9 3h6v5h5v6h-5v7H9v-7H4V8h5z"/>',
+  note: '<path d="M6 3h10l4 4v14H4V3zM15 3v5h5M8 12h8M8 16h5"/>',
   backup: '<path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/>',
   shield: '<path d="m12 3 8 3v5c0 5-4 8-8 10-4-2-8-5-8-10V6z"/><path d="m8 12 3 3 5-6"/>',
 };
