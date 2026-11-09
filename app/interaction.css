@@ -1,0 +1,67 @@
+.ui-icon{display:inline-block;flex-shrink:0;vertical-align:middle}
+.sidebar nav button{display:flex;align-items:center;gap:14px}
+.sidebar nav button>span{display:grid;place-items:center}
+.quick .symbol{display:grid;place-items:center;width:48px;height:48px;border-radius:16px;transition:transform .2s ease,background .2s ease}
+.quick .symbol .ui-icon{width:29px;height:29px}
+.quick button[data-record="feeding"] .symbol{background:#fff3e4!important}
+.quick button[data-record="diaper"] .symbol{background:#e6faf2!important}
+.quick button[data-record="sleep"] .symbol{background:#eaf2ff!important}
+.quick button[data-record="temperature"] .symbol{background:#f0eaff!important}
+.choices [data-pick]{display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px}
+.choices [data-pick] .ui-icon{color:#3182f6}
+.guide-entry{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:linear-gradient(125deg,#edf4ff,#f5f9ff);padding:22px;border:1px solid #dfebff;border-radius:20px}
+.guide-entry .guide-badge{margin:0;flex-shrink:0;width:52px;height:52px;border-radius:17px;background:white}
+.guide-entry strong{display:block;font-size:17px;line-height:1.7}
+.guide-entry small{display:block;font-weight:400;line-height:1.7}
+.guide-entry>.ui-icon{margin-left:auto;color:#3182f6}
+.guide-badge{display:grid;place-items:center;background:#eaf2ff;color:#3182f6;width:60px;height:60px;border-radius:20px;margin-bottom:22px}
+.guide-intro{padding:8px 0 24px}
+.guide-intro h3{font-size:25px;line-height:1.55;margin:10px 0 0;letter-spacing:-.8px}
+.guide-intro p{font-size:14px;color:#6b7684;margin-bottom:0}
+.guide-topic{border-bottom:1px solid #edf0f4}
+.guide-topic summary{min-height:68px;list-style:none;display:flex;align-items:center;gap:12px;padding:14px 0;font-weight:650;font-size:14px;cursor:pointer}
+.guide-topic summary::-webkit-details-marker{display:none}
+.guide-topic-icon{color:#3182f6;display:grid;place-items:center;background:#f2f6ff;width:37px;height:37px;border-radius:12px;flex-shrink:0}
+.guide-expand{margin-left:auto;font-size:22px;font-weight:400;color:#8b95a1;transition:transform .2s}
+.guide-topic[open] .guide-expand{transform:rotate(45deg)}
+.guide-topic summary:focus-visible{outline:3px solid #3182f6;outline-offset:3px;border-radius:8px}
+.guide-answer{font-size:14px;color:#4e5968;line-height:1.95;padding:0 6px 20px 49px}
+.live-nursing{background:#fff3e4;color:#a35c00}
+.live-nursing button{background:#ff9500;color:#fff}
+.motion-setting{width:58px;height:34px;min-height:44px;padding:5px;background:transparent;position:relative;flex-shrink:0}
+.motion-setting:before{content:'';position:absolute;inset:7px 0;background:#dce2e9;border-radius:20px;transition:background .2s}
+.motion-setting:after{content:'';position:absolute;top:11px;left:5px;width:22px;height:22px;border-radius:50%;background:white;box-shadow:0 1px 4px #0002;transition:transform .2s}
+.motion-setting[aria-checked="true"]:before{background:#3182f6}
+.motion-setting[aria-checked="true"]:after{transform:translateX(26px)}
+.save-check{display:inline-grid;place-items:center;vertical-align:middle;width:25px;height:25px;border-radius:50%;background:#20c997;color:#fff;margin-right:10px}
+.record .time{white-space:nowrap}
+@media(max-width:700px){.bottom-nav button>span{display:grid;place-items:center;min-height:30px}.bottom-nav button.add>span{height:36px}.guide-entry{padding:18px;gap:12px}.guide-entry strong{font-size:16px}.guide-entry small{font-size:12px}.guide-intro h3{font-size:23px}.quick button{padding:15px 3px}.live{gap:10px;flex-wrap:wrap}.live>span{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.metric strong{overflow-wrap:anywhere}}
+@media(prefers-reduced-motion:no-preference){
+ body:not(.reduce-motion) button{transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
+ body:not(.reduce-motion) button:active{transform:scale(.97)}
+ body:not(.reduce-motion) .quick button:active .symbol{transform:scale(.88) rotate(-4deg)}
+ body:not(.reduce-motion) .shell .heading{animation:soft-enter .32s ease both}
+ body:not(.reduce-motion) .shell .card,body:not(.reduce-motion) .shell .guide-entry{animation:soft-enter .34s ease both}
+ body:not(.reduce-motion) .grid>.card:nth-child(2){animation-delay:35ms}
+ body:not(.reduce-motion) .grid>.card:nth-child(3){animation-delay:70ms}
+ body:not(.reduce-motion) .grid>.card:nth-child(4){animation-delay:105ms}
+ body:not(.reduce-motion) .modal-backdrop{animation:backdrop-in .16s ease both}
+ body:not(.reduce-motion) .modal{animation:sheet-in .3s cubic-bezier(.22,1,.36,1) both}
+ body:not(.reduce-motion) .onboarding{animation:soft-enter .3s ease both}
+ body:not(.reduce-motion) .bar{transform-origin:bottom;animation:bar-grow .5s cubic-bezier(.2,.8,.2,1) both}
+ body:not(.reduce-motion) .progress>div{transition:width .3s ease}
+ body:not(.reduce-motion) .guide-answer{animation:soft-enter .22s ease both}
+ body:not(.reduce-motion) .save-check{animation:check-in .3s cubic-bezier(.2,1.5,.5,1) both}
+ body:not(.reduce-motion) #toast[style*="block"]{animation:toast-in .25s cubic-bezier(.22,1,.36,1) both}
+ body:not(.reduce-motion) .record{animation:soft-enter .28s ease both}
+ body:not(.reduce-motion) .record:nth-child(2){animation-delay:30ms}
+ body:not(.reduce-motion) .record:nth-child(3){animation-delay:60ms}
+}
+@keyframes soft-enter{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes backdrop-in{from{opacity:0}to{opacity:1}}
+@keyframes sheet-in{from{opacity:0;transform:translateY(28px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bar-grow{from{transform:scaleY(.04)}to{transform:scaleY(1)}}
+@keyframes check-in{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+@keyframes toast-in{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

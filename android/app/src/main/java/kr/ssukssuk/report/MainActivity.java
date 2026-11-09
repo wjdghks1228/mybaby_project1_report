@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import org.json.JSONObject;
 import android.webkit.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
+    private static final String SITE_HOST = "baby-ssukssuk-report.wjdghks1228607146.chatgpt.site";
     private WebView web;
     private ValueCallback<Uri[]> fileCallback;
     private String pendingBackup;
@@ -29,11 +31,12 @@ public class MainActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) { return true; }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
+                if ("https".equals(uri.getScheme()) && SITE_HOST.equals(uri.getHost()) && uri.getPath() != null && uri.getPath().startsWith("/api/")) return null;
                 if (!"https".equals(uri.getScheme()) || !"app.ssukssuk.local".equals(uri.getHost())) return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream(new byte[0]));
                 String path = uri.getPath();
                 if (path == null || path.equals("/")) path = "/index.html";
                 if (path.contains("..")) return null;
-                String mime = path.endsWith(".js") ? "text/javascript" : path.endsWith(".css") ? "text/css" : "text/html";
+                String mime = path.endsWith(".js") ? "text/javascript" : path.endsWith(".css") ? "text/css" : path.endsWith(".png") ? "image/png" : "text/html";
                 try { return new WebResourceResponse(mime, "UTF-8", getAssets().open(path.substring(1))); }
                 catch (IOException e) { return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream(new byte[0])); }
             }
@@ -47,9 +50,29 @@ public class MainActivity extends Activity {
                 startActivityForResult(intent, 101); return true;
             }
         });
-        web.loadUrl("https://app.ssukssuk.local/");
+        Uri incoming = getIntent().getData();
+        String fragment = incoming != null && SITE_HOST.equals(incoming.getHost()) ? incoming.getFragment() : null;
+        String localUrl = "https://app.ssukssuk.local/";
+        if (fragment != null && fragment.matches("invite=[a-f0-9]{64}")) localUrl += "#" + fragment;
+        web.loadUrl(localUrl);
+    }
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent); setIntent(intent);
+        Uri uri = intent.getData();
+        if (uri != null && "https".equals(uri.getScheme()) && SITE_HOST.equals(uri.getHost()) && uri.getFragment() != null && uri.getFragment().matches("invite=[a-f0-9]{64}")) {
+            web.evaluateJavascript("typeof window.ssukssukJoin === 'function' && window.ssukssukJoin(" + JSONObject.quote(uri.toString()) + ")", null);
+        }
     }
     private class BackupBridge {
+        @JavascriptInterface public void shareText(String text) {
+            Uri uri = Uri.parse(text);
+            if (!"https".equals(uri.getScheme()) || !SITE_HOST.equals(uri.getHost()) || text.length() > 2000) return;
+            runOnUiThread(() -> {
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain"); intent.putExtra(Intent.EXTRA_TEXT, text);
+                startActivity(Intent.createChooser(intent, "가족 초대 링크 공유"));
+            });
+        }
         @JavascriptInterface public void exportJson(String json) {
             if (json.length() > 10 * 1024 * 1024) return;
             runOnUiThread(() -> {
@@ -74,5 +97,11 @@ public class MainActivity extends Activity {
         }
         if (request == 102) pendingBackup = null;
     }
-    @Override public void onBackPressed() { if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }
+    @Override public void onBackPressed() {
+        web.evaluateJavascript("typeof window.ssukssukBack === 'function' && window.ssukssukBack()", value -> {
+            if (!"true".equals(value)) {
+                if (web.canGoBack()) web.goBack(); else MainActivity.super.onBackPressed();
+            }
+        });
+    }
 }

@@ -22,3 +22,7 @@ service-account*.json
 *.sqlite
 *.sqlite3
 *.db
+
+dist/
+!cloud/schema.sql
+!drizzle/*.sql

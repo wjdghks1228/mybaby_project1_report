@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "kr.ssukssuk.report",
+      "sha256_cert_fingerprints": [
+        "0A:1D:D2:71:40:4D:FE:AF:77:8C:9A:3A:4C:92:73:17:E7:16:EA:E1:AC:7C:26:40:A8:31:90:16:F3:73:B7:38"
+      ]
+    }
+  }
+]
