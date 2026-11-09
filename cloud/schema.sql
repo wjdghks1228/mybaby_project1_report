@@ -1,4 +1,4 @@
-CREATE TABLE families (id TEXT PRIMARY KEY, child_id TEXT NOT NULL, pin_salt TEXT NOT NULL, pin_hash TEXT NOT NULL, created_at INTEGER NOT NULL);
+CREATE TABLE families (id TEXT PRIMARY KEY, child_id TEXT NOT NULL, pin_salt TEXT NOT NULL, pin_hash TEXT NOT NULL, created_at INTEGER NOT NULL, record_epoch INTEGER NOT NULL DEFAULT 0, reset_id TEXT);
 --> statement-breakpoint
 CREATE TABLE devices (id TEXT PRIMARY KEY, family_id TEXT NOT NULL REFERENCES families(id) ON DELETE CASCADE, key_hash TEXT NOT NULL UNIQUE, label TEXT NOT NULL, failures INTEGER NOT NULL DEFAULT 0, locked_until INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL);
 --> statement-breakpoint
