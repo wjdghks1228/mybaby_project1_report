@@ -5,6 +5,7 @@ const paths = {
   stats: '<path d="M4 20h16M7 16V9m5 7V4m5 12v-5"/>',
   settings: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
   feeding: '<path d="m10 3 4 0v3l2 2v2l3 3a3 3 0 0 1 0 4l-3 3a3 3 0 0 1-4 0l-5-5a3 3 0 0 1 0-4l2-2V6h1zM9 9l7 7m-5-3-2 2m5-1-2 2"/>',
+  food: '<path d="M3 11h18a9 9 0 0 1-18 0ZM7 21h10M18 3l-5 8M5 4v3m4-4v4"/>',
   diaper: '<path d="M3 7h18v5a9 9 0 0 1-18 0zM3 10h4l2 3h6l2-3h4M5 16l3-2m11 2-3-2"/>',
   sleep: '<path d="M20.5 14a8.5 8.5 0 0 1-10.5-10.5A8.5 8.5 0 1 0 20.5 14Z"/><path d="M16 3v4m-2-2h4"/>',
   temperature: '<path d="M9 14.5V5a3 3 0 0 1 6 0v9.5a5 5 0 1 1-6 0ZM12 8v9"/><circle cx="12" cy="18" r="1"/>',
