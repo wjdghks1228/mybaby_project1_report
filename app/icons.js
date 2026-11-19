@@ -16,10 +16,13 @@ const paths = {
   arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
   hospital: '<path d="M9 3h6v5h5v6h-5v7H9v-7H4V8h5z"/>',
   note: '<path d="M6 3h10l4 4v14H4V3zM15 3v5h5M8 12h8M8 16h5"/>',
+  chevronLeft: '<path d="m14 6-6 6 6 6"/>',
+  close: '<path d="m6 6 12 12M6 18 18 6"/>',
+  widget: '<rect x="3" y="5" width="18" height="14" rx="4"/><path d="M8 9v6m4-6v6m4-6v6"/>',
   backup: '<path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/>',
   shield: '<path d="m12 3 8 3v5c0 5-4 8-8 10-4-2-8-5-8-10V6z"/><path d="m8 12 3 3 5-6"/>',
 };
 
 export function icon(name, size = 24) {
-  return `<svg class="ui-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths[name] ?? paths.activity}</svg>`;
+  return `<svg class="ui-icon" data-icon="${name}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths[name] ?? paths.activity}</svg>`;
 }

@@ -1,6 +1,10 @@
 package kr.ssukssuk.report;
 
 import android.app.Activity;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.graphics.Color;
+import android.view.WindowManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,6 +14,9 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
+    public static final String EXTRA_QUICK_ACTION = "kr.ssukssuk.report.QUICK_ACTION";
+    private String pendingQuickAction;
+    private static boolean validQuickAction(String value) { return "sleep".equals(value) || "feeding".equals(value) || "temperature".equals(value) || "diaper".equals(value); }
     private static final String SITE_HOST = "baby-ssukssuk-report.wjdghks1228607146.chatgpt.site";
     private WebView web;
     private ValueCallback<Uri[]> fileCallback;
@@ -18,16 +25,21 @@ public class MainActivity extends Activity {
         super.onCreate(saved);
         web = new WebView(this);
         setContentView(web);
+        web.setBackgroundColor(Color.TRANSPARENT);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         web.setPadding(0, 0, 0, 0);
         web.setFitsSystemWindows(true);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
+        s.setCacheMode(WebSettings.LOAD_NO_CACHE);
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(true);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         web.addJavascriptInterface(new BackupBridge(), "AndroidBackup");
+        web.addJavascriptInterface(new WidgetBridge(), "AndroidWidget");
         web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) { deliverQuickAction(); }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) { return true; }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
@@ -53,16 +65,38 @@ public class MainActivity extends Activity {
         Uri incoming = getIntent().getData();
         String fragment = incoming != null && SITE_HOST.equals(incoming.getHost()) ? incoming.getFragment() : null;
         String localUrl = "https://app.ssukssuk.local/";
+        String quickAction = getIntent().getStringExtra(EXTRA_QUICK_ACTION);
+        if (validQuickAction(quickAction)) { localUrl += "?quick=" + quickAction; setQuickWindow(true); }
         if (fragment != null && fragment.matches("invite=[a-f0-9]{64}")) localUrl += "#" + fragment;
         web.loadUrl(localUrl);
     }
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent); setIntent(intent);
+        String quickAction = intent.getStringExtra(EXTRA_QUICK_ACTION);
+        if (validQuickAction(quickAction)) { pendingQuickAction = quickAction; setQuickWindow(true); deliverQuickAction(); }
+        else if (Intent.ACTION_MAIN.equals(intent.getAction())) { pendingQuickAction = null; setQuickWindow(false); web.evaluateJavascript("typeof window.ssukssukOpenMain === 'function' && window.ssukssukOpenMain()", null); }
         Uri uri = intent.getData();
         if (uri != null && "https".equals(uri.getScheme()) && SITE_HOST.equals(uri.getHost()) && uri.getFragment() != null && uri.getFragment().matches("invite=[a-f0-9]{64}")) {
             web.evaluateJavascript("typeof window.ssukssukJoin === 'function' && window.ssukssukJoin(" + JSONObject.quote(uri.toString()) + ")", null);
         }
     }
+    private void deliverQuickAction() {
+        if (pendingQuickAction == null || web == null) return;
+        final String action = pendingQuickAction;
+        web.evaluateJavascript("typeof window.ssukssukQuick === 'function' ? window.ssukssukQuick(" + JSONObject.quote(action) + ") : false", value -> { if ("true".equals(value) && action.equals(pendingQuickAction)) pendingQuickAction = null; });
+    }
+    private void setQuickWindow(boolean enabled) {
+        if (enabled) { getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND); getWindow().setDimAmount(0.28f); }
+        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+    }
+    private class WidgetBridge {
+        @JavascriptInterface public boolean isPinSupported() { return AppWidgetManager.getInstance(MainActivity.this).isRequestPinAppWidgetSupported(); }
+        @JavascriptInterface public void requestPin() { runOnUiThread(() -> { AppWidgetManager manager = AppWidgetManager.getInstance(MainActivity.this); if (manager.isRequestPinAppWidgetSupported()) manager.requestPinAppWidget(new ComponentName(MainActivity.this, QuickRecordWidget.class), null, null); }); }
+        @JavascriptInterface public void setQuickMode(boolean enabled) { runOnUiThread(() -> setQuickWindow(enabled)); }
+        @JavascriptInterface public void finishQuick() { runOnUiThread(() -> finish()); }
+        @JavascriptInterface public void openMain() { runOnUiThread(() -> { getIntent().removeExtra(EXTRA_QUICK_ACTION); pendingQuickAction = null; setQuickWindow(false); }); }
+    }
+    @Override protected void onDestroy() { if (web != null) { web.stopLoading(); web.removeJavascriptInterface("AndroidWidget"); web.removeJavascriptInterface("AndroidBackup"); web.destroy(); web = null; } super.onDestroy(); }
     private class BackupBridge {
         @JavascriptInterface public void shareText(String text) {
             Uri uri = Uri.parse(text);
@@ -98,7 +132,9 @@ public class MainActivity extends Activity {
         if (request == 102) pendingBackup = null;
     }
     @Override public void onBackPressed() {
+        if (web == null || isFinishing()) return;
         web.evaluateJavascript("typeof window.ssukssukBack === 'function' && window.ssukssukBack()", value -> {
+            if (web == null || isFinishing()) return;
             if (!"true".equals(value)) {
                 if (web.canGoBack()) web.goBack(); else MainActivity.super.onBackPressed();
             }
