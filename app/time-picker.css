@@ -13,12 +13,13 @@
 .time-picker-steps button[aria-pressed=true] { color: var(--green-ink); background: var(--green-soft); }
 .time-picker-steps button:disabled { opacity: .5; }
 .time-picker-heading { font-size: 1rem; font-weight: 550; margin: 12px 0; }
-.time-picker-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 7px; }
+.time-picker-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; }
 .time-picker-grid.time-picker-digits { grid-template-columns: repeat(5,minmax(0,1fr)); }
+.time-picker-grid:not(.time-picker-digits) button { min-height: 48px; }
 .time-picker-grid button { min-width: 0; min-height: 46px; padding: 10px 0; border-radius: 10px; background: white; color: var(--ink); font-size: .875rem; font-variant-numeric: tabular-nums; }
 .time-picker-grid button[aria-pressed=true] { background: var(--green); color: #263329; }
 .time-picker-selected { color: var(--green-ink); font-variant-numeric: tabular-nums; margin: 16px 0 6px; font-size: .9375rem; }
 .time-picker-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 14px; }
 .time-picker-actions button { min-height: 44px; background: transparent; color: var(--muted); font-size: .875rem; padding: 10px; }
 .record-at-help { font-size: .875rem; color: var(--muted); line-height: 1.8; }
-@media(max-width:380px) { .time-picker { padding: 12px; } .time-picker-grid { gap: 5px; } .time-picker-grid button { font-size: .8125rem; } }
+@media(max-width:380px) { .time-picker { padding: 12px; } .time-picker-grid { gap: 5px; } .time-picker-grid button { font-size: .8125rem; } .time-picker-grid.time-picker-digits { grid-template-columns: repeat(4,minmax(0,1fr)); } }
