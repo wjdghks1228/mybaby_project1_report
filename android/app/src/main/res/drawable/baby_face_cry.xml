@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A display window into the intact source sheet, sized for a 36dp ImageView. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:left="-40.8750dp" android:top="-6.7500dp" android:right="-80.1750dp" android:bottom="-13.5750dp">
+        <bitmap android:src="@drawable/baby_faces" android:gravity="fill" android:filter="true" />
+    </item>
+</layer-list>

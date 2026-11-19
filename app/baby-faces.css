@@ -1,0 +1,47 @@
+.baby-face {
+  display: inline-block;
+  width: var(--face-size, 40px);
+  height: var(--face-size, 40px);
+  flex: 0 0 auto;
+  vertical-align: middle;
+  border-radius: 50%;
+  background-color: #F1F4EC;
+  background-image: url('assets/baby-faces.png');
+  background-repeat: no-repeat;
+  background-size: 436.25% 156.458333%;
+  background-position-y: 33.210332%;
+}
+.baby-face-smile { background-position-x: 1.239157%; }
+.baby-face-cry { background-position-x: 33.767038%; }
+.baby-face-sweet { background-position-x: 66.294919%; }
+.baby-face-pout { background-position-x: 98.636927%; }
+.record-face { display: inline-flex; position: relative; flex: 0 0 auto; vertical-align: middle; }
+.record-face-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: var(--green-soft, #EAF5DC);
+  color: #45662B;
+}
+.record-face-badge .ui-icon { width: 12px; height: 12px; }
+.choices [data-pick] { display: flex; align-items: center; gap: 12px; text-align: left; padding: 14px 16px; }
+.choices [data-pick] > .record-face > .baby-face { width: 42px; height: 42px; }
+.choices [data-pick] > .ui-icon { margin: 9px; }
+.record .dot:has(.record-face) { background: transparent; }
+.record .dot > .record-face > .baby-face { width: 36px; height: 36px; }
+.home-heading > .baby-face { width: 52px; height: 52px; margin-left: 14px; }
+.home-heading > div { flex: 1; }
+.empty .baby-face { display: block; margin: 0 auto 14px; }
+.pin-screen > .baby-face { display: block; margin: 28px 0; }
+.onboarding .hero-icon .baby-face { display: block; }
+body.widget-mode .pin-screen > .baby-face { display: none; }
+@media (max-width: 380px) {
+  .choices [data-pick] { gap: 9px; padding: 13px 10px; }
+  .choices [data-pick] > .record-face > .baby-face { width: 36px; height: 36px; }
+}

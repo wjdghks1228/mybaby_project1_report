@@ -1,3 +1,4 @@
+import {babyFace} from './baby-faces.js';
 import {healthDetail} from './health-model.js';
 import {PREP_ITEMS} from './preparation-catalog.js';
 import {PREP_STATES,PREP_TASK_RULES} from './preparation-model.js';
@@ -28,7 +29,7 @@ export function familyUI({cloud,read,modal,close,toast,render,esc,icon,exportDat
    };
   });
  }
- function lockScreen(){const state=read();return `<main class="pin-screen"><div class="brand"><span class="brand-icon"><img src="assets/baby-icon.png" alt=""></span>아이 쑥쑥 성장 리포트</div><img src="assets/baby-icon.png" alt="" class="pin-avatar"><span class="eyebrow">OUR FAMILY JOURNAL</span><h1>${esc(state.child?.name??'우리 가족')}의 기록을<br>함께 이어가요.</h1><p class="muted">이 기기는 가족 기록함에 연결되어 있어요.<br>가족 PIN으로 입장해주세요.</p><form id="unlock-family-form">${pinField('unlock-pin','가족 PIN 4자리')}<p class="cloud-form-error" role="alert"></p><button type="submit" class="primary full">기록함 입장</button></form><p class="note">PIN 확인에는 인터넷 연결이 필요해요. PIN을 여러 번 틀리면 15분 동안 재시도가 제한돼요. 이 기기에 보관된 전송 대기 기록은 유지됩니다.</p></main>`;}
+ function lockScreen(){const state=read();return `<main class="pin-screen"><div class="brand"><span class="brand-icon"><img src="assets/baby-icon.png" alt=""></span>아이 쑥쑥 성장 리포트</div>${babyFace('sweet',74)}<span class="eyebrow">OUR FAMILY JOURNAL</span><h1>${esc(state.child?.name??'우리 가족')}의 기록을<br>함께 이어가요.</h1><p class="muted">이 기기는 가족 기록함에 연결되어 있어요.<br>가족 PIN으로 입장해주세요.</p><form id="unlock-family-form">${pinField('unlock-pin','가족 PIN 4자리')}<p class="cloud-form-error" role="alert"></p><button type="submit" class="primary full">기록함 입장</button></form><p class="note">PIN 확인에는 인터넷 연결이 필요해요. PIN을 여러 번 틀리면 15분 동안 재시도가 제한돼요. 이 기기에 보관된 전송 대기 기록은 유지됩니다.</p></main>`;}
  function bindLock(){if($('#unlock-family-form'))$('#unlock-family-form').onsubmit=e=>{e.preventDefault();submit(e.currentTarget,()=>cloud.unlock($('#unlock-pin').value));};}
  return {syncCard,settingsCard,bind,connect,join,lockScreen,bindLock};
 }
